@@ -1,23 +1,27 @@
 package com.example.healthapp.data;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Entry {
 
     //Fields
-    private CategoryEntry[] categories;
+    private List<CategoryEntry> categories;
     private Date entryDate;
     private String entryText;
     private int mood;
 
+    private String userId;
+
     public Entry() {
-        categories = new CategoryEntry[3];
+        categories = new ArrayList<>();
         entryDate = new Date();
         entryText = "";
     }
 
     //Getters
-    public CategoryEntry[] getCategories() {
+    public List<CategoryEntry> getCategories() {
         return categories;
     }
 
@@ -33,8 +37,12 @@ public class Entry {
         return mood;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     //Setters
-    public void setCategories(CategoryEntry[] categories) {
+    public void setCategories(List<CategoryEntry> categories) {
         this.categories = categories;
     }
 
@@ -48,6 +56,10 @@ public class Entry {
 
     public void setMood(int mood) {
         this.mood = mood;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
 }

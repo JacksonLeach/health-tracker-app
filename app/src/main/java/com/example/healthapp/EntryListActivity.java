@@ -1,12 +1,24 @@
 package com.example.healthapp;
 
+import android.app.Application;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import com.example.healthapp.data.CategoryEntry;
 import com.example.healthapp.data.Entry;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,15 +37,28 @@ import java.io.Console;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class EntryListActivity extends AppCompatActivity {
 
+    private final int RC_LOGIN = 1;
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+
+    private FirebaseFirestore db;
+
+    private EntryListAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        checkLogin();
         setContentView(R.layout.activity_entry_list);
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -43,27 +68,89 @@ public class EntryListActivity extends AppCompatActivity {
         entryListView.setLayoutManager(new LinearLayoutManager(this));
 
         ArrayList<Entry> entries = new ArrayList<>();
-        Entry newEntry = new Entry();
-        CategoryEntry newCat1 = new CategoryEntry();
-        newCat1.setCategoryTitle("Spiritual");
-        newCat1.setEntryText("Today was a good day");
-        newCat1.setMood(2);
 
-        CategoryEntry newCat2 = new CategoryEntry();
-        newCat2.setCategoryTitle("Physical");
-        newCat2.setEntryText("Didn't work out at all");
-        newCat2.setMood(0);
+        adapter = new EntryListAdapter(entries, R.layout.day_view_layout);
 
-        CategoryEntry newCat3 = new CategoryEntry();
-        newCat3.setCategoryTitle("Mental");
-        newCat3.setEntryText("Eh");
-        newCat3.setMood(1);
+        entryListView.setAdapter(adapter);
 
-        newEntry.setCategories(new CategoryEntry[]{newCat1, newCat2, newCat3});
-        entries.add(newEntry);
+        getData(entries);
 
-        entryListView.setAdapter(new EntryListAdapter(entries, R.layout.day_view_layout));
+    }
 
+    private void checkLogin() {
+        if (mAuth.getCurrentUser() == null) {
+            loginActivity();
+        } else {
+            currentUser = mAuth.getCurrentUser();
+        }
+    }
+
+    private void loginActivity() {
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.EmailBuilder().build(),
+                new AuthUI.IdpConfig.GoogleBuilder().build());
+
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                RC_LOGIN
+                );
+
+    }
+
+    private void addData(Entry entry) {
+        CollectionReference entriesRef = db.collection("entries");
+        String currentUserId = currentUser.getUid();
+        entry.setUserId(currentUserId);
+
+        entriesRef.add(entry)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("firestore", "Document written with id: " + documentReference.getId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("firestore", "Error adding document", e);
+                });
+
+    }
+
+    private void getData(List<Entry> entries) {
+        CollectionReference entriesRef = db.collection("entries");
+        String currentUserId = currentUser.getUid();
+        Log.d("firestore", currentUserId);
+        entriesRef
+                .whereEqualTo("userId", currentUserId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("firestore", "task successful");
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            entries.add(document.toObject(Entry.class));
+                        }
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        Log.e("firestore", "error getting data");
+                        Log.e("firestore", "error: ", task.getException());
+                    }
+                });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_LOGIN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                // Successfully signed in
+                currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            } else {
+                this.finish();
+                System.exit(0);
+            }
+        }
     }
 
     public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.MyViewHolder> {
@@ -143,15 +230,15 @@ public class EntryListActivity extends AppCompatActivity {
                 monthDisplay.setText(monthFormatter.format(entry.getEntryDate()).toUpperCase());
                 dayDisplay.setText(dayFormatter.format(entry.getEntryDate()));
 
-                CategoryEntry[] categoryEntries = entry.getCategories();
-                category1.setText(categoryEntries[0].getCategoryTitle());
-                category1Image.setImageDrawable(getImageFromInt(categoryEntries[0].getMood()));
+                List<CategoryEntry> categoryEntries = entry.getCategories();
+                category1.setText(categoryEntries.get(0).getCategoryTitle());
+                category1Image.setImageDrawable(getImageFromInt(categoryEntries.get(0).getMood()));
 
-                category2.setText(categoryEntries[1].getCategoryTitle());
-                category2Image.setImageDrawable(getImageFromInt(categoryEntries[1].getMood()));
+                category2.setText(categoryEntries.get(1).getCategoryTitle());
+                category2Image.setImageDrawable(getImageFromInt(categoryEntries.get(1).getMood()));
 
-                category3.setText(categoryEntries[2].getCategoryTitle());
-                category3Image.setImageDrawable(getImageFromInt(categoryEntries[2].getMood()));
+                category3.setText(categoryEntries.get(2).getCategoryTitle());
+                category3Image.setImageDrawable(getImageFromInt(categoryEntries.get(2).getMood()));
             }
         }
     }
