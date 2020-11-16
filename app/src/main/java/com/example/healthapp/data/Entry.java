@@ -2,7 +2,9 @@ package com.example.healthapp.data;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Entry {
 
@@ -18,6 +20,10 @@ public class Entry {
         categories = new ArrayList<>();
         entryDate = new Date();
         entryText = "";
+    }
+
+    public void addCategoryEntry(CategoryEntry newEntry) {
+        categories.add(newEntry);
     }
 
     //Getters

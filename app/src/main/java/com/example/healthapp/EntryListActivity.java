@@ -42,7 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class EntryListActivity extends AppCompatActivity {
+public class    EntryListActivity extends AppCompatActivity {
 
     private final int RC_LOGIN = 1;
     private FirebaseAuth mAuth;
@@ -55,15 +55,20 @@ public class EntryListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_entry_list);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        checkLogin();
-        setContentView(R.layout.activity_entry_list);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show());
+        checkLogin();
+
+
+
+        FloatingActionButton fab = findViewById(R.id.newEntryButton);
+        fab.setOnClickListener(view -> {
+            Intent newEntryIntent = new Intent(this, NewEntry.class);
+            startActivity(newEntryIntent);
+        });
         RecyclerView entryListView = findViewById(R.id.entryListRecyclerView);
         entryListView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -102,7 +107,12 @@ public class EntryListActivity extends AppCompatActivity {
 
     private void addData(Entry entry) {
         CollectionReference entriesRef = db.collection("entries");
-        String currentUserId = currentUser.getUid();
+        String currentUserId;
+        if (currentUser == null) {
+            currentUserId = "";
+        } else {
+            currentUserId = currentUser.getUid();
+        }
         entry.setUserId(currentUserId);
 
         entriesRef.add(entry)
@@ -117,7 +127,12 @@ public class EntryListActivity extends AppCompatActivity {
 
     private void getData(List<Entry> entries) {
         CollectionReference entriesRef = db.collection("entries");
-        String currentUserId = currentUser.getUid();
+        String currentUserId;
+        if (currentUser == null) {
+            currentUserId = "";
+        } else {
+            currentUserId = currentUser.getUid();
+        }
         Log.d("firestore", currentUserId);
         entriesRef
                 .whereEqualTo("userId", currentUserId)
@@ -211,11 +226,11 @@ public class EntryListActivity extends AppCompatActivity {
 
             public Drawable getImageFromInt(int index) {
                 switch (index) {
-                    case 0:
+                    case 2:
                         return getDrawable(R.drawable.negative_response);
                     case 1:
                         return getDrawable(R.drawable.neutral_response);
-                    case 2:
+                    case 0:
                         return getDrawable(R.drawable.positive_response);
                 }
                 return null;

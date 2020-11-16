@@ -12,6 +12,10 @@ public class CategoryEntry {
         categoryTitle = "";
     }
 
+    public CategoryEntry(String category) {
+        this.categoryTitle = category;
+    }
+
     public String getEntryText() {
         return entryText;
     }

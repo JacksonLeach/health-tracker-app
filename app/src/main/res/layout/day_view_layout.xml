@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="5dp">
     <com.google.android.material.card.MaterialCardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,15 +21,15 @@
                 android:orientation="vertical">
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="48sp"
+                    android:layout_width="75dp"
+                    android:layout_height="40sp"
                     android:includeFontPadding="false"
                     android:text="OCT"
                     android:id="@+id/monthDisplay"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4" />
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="48dp"
                     android:layout_height="48sp"
                     android:padding="0sp"
                     android:includeFontPadding="false"
@@ -40,7 +41,7 @@
                 android:layout_width="3dp"
                 android:layout_height="match_parent"
                 android:background="?colorSecondary"
-                android:layout_marginHorizontal="10dp"
+                android:layout_marginHorizontal="5dp"
                 />
 
             <LinearLayout

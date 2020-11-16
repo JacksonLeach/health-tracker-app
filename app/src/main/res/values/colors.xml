@@ -10,4 +10,5 @@
     <color name="positive_resp">#00D42F</color>
     <color name="negative_resp">#FF192A</color>
     <color name="neutral_resp">#FFD100</color>
+    <color name="mood_selector_bg_color">#afafaf</color>
 </resources>
